@@ -1,5 +1,7 @@
 #include <Graph/Graph.h>
+#include <NearestInsertion/NearestInsertion.h>
 #include <iostream>
+#include <chrono>
 
 std::string getUserSelectedFile() {
   std::vector<std::string> fileChoices = {"tsp1_253.txt", "tsp2_1248.txt", "tsp3_1194.txt", "tsp4_7013.txt",
@@ -49,6 +51,18 @@ int main() {
     graph.printMatrix();
     std::cout << "Vertices: " << V << "\n";
 
+    // START ---------------- Nearest Insertion ----------------
+    auto s1 = std::chrono::high_resolution_clock::now();
+    auto [path, heuristicCost] = NearestInsertion::run(graph);
+    
+    auto e1 = std::chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::duration_cast<std::chrono::microseconds>(e1 - s1).count();
+
+    std::cout << "Algoritmo: Nearest Insertion\n";
+    std::cout << "Custo: " << heuristicCost << "\n";
+    std::cout << "Tempo: " << t1 << " us\n\n";
+    // END ---------------- Nearest Insertion ----------------
+
     // START ---------------- brute force (pure backtracking) ----------------
     TSPMetricBruteForceLvlState input;
     input.visited.assign(V, false);
@@ -84,6 +98,7 @@ int main() {
 
     std::cout << "difference (BruteForce - BranchAndBound): " << (duration1.count() - duration2.count()) << " ms\n\n";
     // END ---------------- Branch-and-bound ----------------
+    
   }
 
   return 0;
