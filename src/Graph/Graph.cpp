@@ -110,6 +110,10 @@ unsigned int Graph::runTSPBruteForce(TSPMetricBruteForceLvlState input) const {
 // Time Complexity: O(V!)
 // Space complexity: O(V)
 // worst case is equal, but it is faster because we are cleaning more unnecessary paths than before
+// -- Why is it called Branch and Bound? Because at every branch we compute a lower/upper bound
+// -- to decide whether we should continue exploring it or prune it.
+// -- branch: explore paths | bound: estimate next path and cut if is worst
+// it checks (lower XOR upper) depending on the problem (minimization or maximization), TSP is minimization
 unsigned int Graph::runTSPBranchAndBound(TSPState state) const {
   int pathSize = state.path.size();
   int vertices = getVertices();
