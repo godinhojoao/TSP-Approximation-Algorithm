@@ -1,7 +1,14 @@
 #pragma once
 
+#include <limits>
 #include <string>
 #include <vector>
+
+struct TSPMetricBacktrackInput {
+  unsigned int bestCost = std::numeric_limits<unsigned int>::max();
+  unsigned int currCost = 0;
+  std::vector<unsigned int> visitedNodesIndexes = {0};
+};
 
 class Graph {
 public:
@@ -15,9 +22,8 @@ public:
   int getDistance(int u, int v) const;
   int getVertices() const;
 
-  // optimal solutiosn (NP-hard -> too slow)
-  void runBruteForceTSPMetric() const;
-  // void runBranchAndBoundTSPMetric() const;
+  // optimal solution (NP-hard -> too slow)
+  unsigned int runTSPMetricBacktrack(TSPMetricBacktrackInput input) const;
 
 private:
   int V;

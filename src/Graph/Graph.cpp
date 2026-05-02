@@ -65,6 +65,43 @@ int Graph::getVertices() const {
   return V;
 }
 
-void Graph::runBruteForceTSPMetric() const {
-  
+// Time complexity: O(v*v!) -> v! recursion and in each path does for(i=1 to v)
+// Space complexity: O(v) -> stack and auxiliar visitedNodesIndexes
+unsigned int Graph::runTSPMetricBacktrack(TSPMetricBacktrackInput input) const {
+  int pathSize = input.visitedNodesIndexes.size();
+  int vertices = getVertices();
+  if(pathSize == vertices) {
+    int firstPos = 0; // fixed start at pos 0 since it doesn't matter in symetric TSP
+    int lastUsedPos = input.visitedNodesIndexes[pathSize - 1];
+    input.currCost += getDistance(lastUsedPos, firstPos); // returning to path[0]
+    input.bestCost = input.currCost < input.bestCost ? input.currCost : input.bestCost;
+    return input.bestCost;
+  }
+
+  for(int i = 1; i < vertices; i++) {
+    // Avoid mirroring (only possible because it's symetric/undirected) --> iterations/2
+    // 01230 == 03210 (path[1] = 1, path[1] = 3) we need to choose which to count to avoid counting both
+    // lastButOne < path[i]? accept : skip (if want to accept first side of mirror)
+    // lastButOne < path[1]? accept : skip (if want to accept second side of mirror)
+    bool isLastButOneOfPath = pathSize == vertices - 1;
+    if(isLastButOneOfPath && i > input.visitedNodesIndexes[1]) {
+      continue;
+    }
+
+    auto pointerToItem = std::find(input.visitedNodesIndexes.begin(), input.visitedNodesIndexes.end(), i);
+    bool isNotVisitedItem = pointerToItem == input.visitedNodesIndexes.end(); // if not found point to end
+    if(isNotVisitedItem) {
+      int lastUsedPos = input.visitedNodesIndexes[pathSize - 1];
+      int distanceToAdd = getDistance(lastUsedPos, i);
+      input.currCost += distanceToAdd;
+      input.visitedNodesIndexes.push_back(i);
+
+      input.bestCost = Graph::runTSPMetricBacktrack(input);
+
+      input.currCost -= distanceToAdd;
+      input.visitedNodesIndexes.pop_back();
+    }
+  }
+
+  return input.bestCost;
 }
