@@ -1,5 +1,4 @@
 #include <Graph/Graph.h>
-#include <NearestInsertion/NearestInsertion.h>
 #include <iostream>
 #include <chrono>
 
@@ -36,6 +35,35 @@ std::string getUserSelectedFile() {
   return fileChoices[selectedOption - 1];
 }
 
+// menu to choose algorithm
+int getUserSelectedAlgorithm() {
+  std::cout << "Choose Algorithm:\n";
+  std::cout << "1 - Nearest Insertion (Heuristic)\n";
+  std::cout << "2 - Brute Force (Optimal)\n";
+  std::cout << "3 - Branch and Bound (Optimal)\n";
+  std::cout << "0 - Go back\n";
+  std::cout << "Choose one option: ";
+
+  int selectedOption = -1;
+  while(selectedOption < 0 || selectedOption > 3) {
+    std::cin >> selectedOption;
+    if(std::cin.fail()) {
+      std::cin.clear();
+      std::cin.ignore(10000, '\n');
+      selectedOption = -1;
+      std::cout << "invalid input try again: ";
+      continue;
+    }
+
+    if(selectedOption < 0 || selectedOption > 3) {
+      std::cout << "\ninvalid choice try again: ";
+    }
+  }
+
+  std::cout << "\n";
+  return selectedOption;
+}
+
 int main() {
 
   while(true) {
@@ -46,58 +74,72 @@ int main() {
       return 0; // exit
     }
 
+    // call menu to choose algorithm
+    int selectedAlgo = getUserSelectedAlgorithm();
+    if(selectedAlgo == 0) {
+      continue; // back to file selection
+    }
+
     graph.loadGraphFromFile("./tsp-files/" + selectedFile);
     int V = graph.getVertices();
     graph.printMatrix();
-    std::cout << "Vertices: " << V << "\n";
+    std::cout << "Vertices: " << V << "\n\n";
 
-    // START ---------------- Nearest Insertion ----------------
-    auto s1 = std::chrono::high_resolution_clock::now();
-    auto [path, heuristicCost] = NearestInsertion::run(graph);
-    
-    auto e1 = std::chrono::high_resolution_clock::now();
-    auto t1 = std::chrono::duration_cast<std::chrono::microseconds>(e1 - s1).count();
+    if (selectedAlgo == 1) {
+      // START ---------------- Nearest Insertion ----------------
+      auto s1 = std::chrono::high_resolution_clock::now();
+      
+      auto [path, heuristicCost] = graph.runTSPNearestInsertion();
+      
+      auto e1 = std::chrono::high_resolution_clock::now();
+      auto t1 = std::chrono::duration_cast<std::chrono::microseconds>(e1 - s1).count();
 
-    std::cout << "Algoritmo: Nearest Insertion\n";
-    std::cout << "Custo: " << heuristicCost << "\n";
-    std::cout << "Tempo: " << t1 << " us\n\n";
-    // END ---------------- Nearest Insertion ----------------
+      std::cout << "Algoritmo: Nearest Insertion\n";
+      std::cout << "Custo: " << heuristicCost << "\n";
+      std::cout << "Tempo: " << t1 << " us\n\n";
+      double optimal_cost = selectedFile == "tsp1_253.txt" ? 253 : selectedFile == "tsp2_1248.txt" ? 1248 : selectedFile == "tsp3_1194.txt" ? 1194 : selectedFile == "tsp4_7013.txt" ? 7013 : selectedFile == "tsp5_27603.txt" ? 27603 : 0;
+      double approximation_ratio = (double)heuristicCost / optimal_cost;
+      std::cout << "Approximation ratio: " << approximation_ratio << "\n\n";
+      // END ---------------- Nearest Insertion ----------------
+    } 
+    else if (selectedAlgo == 2) {
+      // START ---------------- brute force (pure backtracking) ----------------
+      TSPMetricBruteForceLvlState input;
+      input.visited.assign(V, false);
+      input.visitedNodesIndexes = {0};
+      input.visited[0] = true;
 
-    // START ---------------- brute force (pure backtracking) ----------------
-    TSPMetricBruteForceLvlState input;
-    input.visited.assign(V, false);
-    input.visitedNodesIndexes = {0};
-    input.visited[0] = true;
+      auto start1 = std::chrono::high_resolution_clock::now();
+      unsigned int cost1 = graph.runTSPBruteForce(input);
+      auto end1 = std::chrono::high_resolution_clock::now();
 
-    auto start1 = std::chrono::high_resolution_clock::now();
-    unsigned int cost1 = graph.runTSPBruteForce(input);
-    auto end1 = std::chrono::high_resolution_clock::now();
+      auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1);
 
-    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1);
+      std::cout << "Algoritmo: Brute Force\n";
+      std::cout << "Custo: " << cost1 << "\n";
+      std::cout << "Tempo: " << duration1.count() << " ms\n\n";
+      // END ---------------- brute force (pure backtracking) ----------------
+    } 
+    else if (selectedAlgo == 3) {
+      // START ---------------- Branch-and-bound ----------------
+      TSPState state;
+      state.bestCost = std::numeric_limits<unsigned int>::max();
+      state.currCost = 0;
+      state.visited.assign(V, false);
+      state.path = {0};
+      state.visited[0] = true;
 
-    std::cout << "runTSPBruteForce cost: " << cost1 << "\n";
-    std::cout << "runTSPBruteForce time: " << duration1.count() << " ms\n\n";
-    // END ---------------- brute force (pure backtracking) ----------------
+      auto start2 = std::chrono::high_resolution_clock::now();
+      unsigned int cost2 = graph.runTSPBranchAndBound(state);
+      auto end2 = std::chrono::high_resolution_clock::now();
 
-    // START ---------------- Branch-and-bound ----------------
-    TSPState state;
-    state.bestCost = std::numeric_limits<unsigned int>::max();
-    state.currCost = 0;
-    state.visited.assign(V, false);
-    state.path = {0};
-    state.visited[0] = true;
+      auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2);
 
-    auto start2 = std::chrono::high_resolution_clock::now();
-    unsigned int cost2 = graph.runTSPBranchAndBound(state);
-    auto end2 = std::chrono::high_resolution_clock::now();
-
-    auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2);
-
-    std::cout << "runTSPBranchAndBound cost: " << cost2 << "\n";
-    std::cout << "runTSPBranchAndBound time: " << duration2.count() << " ms\n\n";
-
-    std::cout << "difference (BruteForce - BranchAndBound): " << (duration1.count() - duration2.count()) << " ms\n\n";
-    // END ---------------- Branch-and-bound ----------------
+      std::cout << "Algoritmo: Branch and Bound\n";
+      std::cout << "Custo: " << cost2 << "\n";
+      std::cout << "Tempo: " << duration2.count() << " ms\n\n";
+      // END ---------------- Branch-and-bound ---------------- 
+    }
     
   }
 

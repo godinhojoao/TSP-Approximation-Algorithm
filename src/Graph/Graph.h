@@ -3,6 +3,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <utility>
 
 struct TSPMetricBruteForceLvlState {
   unsigned int bestCost = std::numeric_limits<unsigned int>::max();
@@ -34,8 +35,11 @@ public:
   unsigned int runTSPBruteForce(TSPMetricBruteForceLvlState input) const;
   unsigned int runTSPBranchAndBound(TSPState state) const;
 
+  std::pair<std::vector<int>, int> runTSPNearestInsertion() const;
+
 private:
   int V;
 
   std::vector<std::vector<int>> adjMatrix;
+  int findNearest(int startNode, const std::vector<bool>& visited) const;
 };
