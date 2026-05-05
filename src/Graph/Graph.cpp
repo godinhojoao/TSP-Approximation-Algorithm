@@ -69,15 +69,15 @@ int Graph::getVertices() const {
 // Time Complexity: O(V!)
 // fix start at 0 -> permutations reduce to (V-1)!
 // each step tries V choices -> O(V * (V-1)!) = O(V!)
-// Space complexity: O(V) -> stack and auxiliar visitedNodesIndexes
-unsigned int Graph::runTSPBruteForce(TSPMetricBruteForceLvlState input) const {
-  int pathSize = input.visitedNodesIndexes.size();
+// Space complexity: O(V) -> stack and auxiliar path
+unsigned int Graph::runTSPBruteForce(TSPState state) const {
+  int pathSize = state.path.size();
   int vertices = getVertices();
   if(pathSize == vertices) {
-    int lastUsedPos = input.visitedNodesIndexes.back();
+    int lastUsedPos = state.path.back();
     int firstPos = 0; // fixed start at pos 0 since it doesn't matter in symetric TSP
-    int totalCostReturningToStart = input.currCost + getDistance(lastUsedPos, firstPos); // returning to path[0]
-    return totalCostReturningToStart < input.bestCost ? totalCostReturningToStart : input.bestCost;
+    int totalCostReturningToStart = state.currCost + getDistance(lastUsedPos, firstPos); // returning to path[0]
+    return totalCostReturningToStart < state.bestCost ? totalCostReturningToStart : state.bestCost;
   }
 
   for(int i = 1; i < vertices; i++) { // O(v)
@@ -86,26 +86,26 @@ unsigned int Graph::runTSPBruteForce(TSPMetricBruteForceLvlState input) const {
     // lastButOne < path[i]? accept : skip (if want to accept first side of mirror)
     // lastButOne < path[1]? accept : skip (if want to accept second side of mirror)
     bool isLastButOneOfPath = pathSize == vertices - 1;
-    if(isLastButOneOfPath && i > input.visitedNodesIndexes[1]) {
+    if(isLastButOneOfPath && i > state.path[1]) {
       continue;
     }
 
-    if(!input.visited[i]) {
-      int lastUsedPos = input.visitedNodesIndexes.back();
+    if(!state.visited[i]) {
+      int lastUsedPos = state.path.back();
       int distanceToAdd = getDistance(lastUsedPos, i);
-      input.currCost += distanceToAdd;
-      input.visitedNodesIndexes.push_back(i);
-      input.visited[i] = true;
+      state.currCost += distanceToAdd;
+      state.path.push_back(i);
+      state.visited[i] = true;
 
-      input.bestCost = Graph::runTSPBruteForce(input); // O((V-1)!) since fixed start = 0
+      state.bestCost = Graph::runTSPBruteForce(state); // O((V-1)!) since fixed start = 0
 
-      input.currCost -= distanceToAdd;
-      input.visitedNodesIndexes.pop_back();
-      input.visited[i] = false;
+      state.currCost -= distanceToAdd;
+      state.path.pop_back();
+      state.visited[i] = false;
     }
   }
 
-  return input.bestCost;
+  return state.bestCost;
 }
 
 // Time Complexity: O(V!)

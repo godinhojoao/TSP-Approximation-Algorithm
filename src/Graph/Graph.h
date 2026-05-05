@@ -5,13 +5,6 @@
 #include <vector>
 #include <utility>
 
-struct TSPMetricBruteForceLvlState {
-  unsigned int bestCost = std::numeric_limits<unsigned int>::max();
-  unsigned int currCost = 0;
-  std::vector<unsigned int> visitedNodesIndexes;
-  std::vector<bool> visited;
-};
-
 struct TSPState {
   unsigned int bestCost = std::numeric_limits<unsigned int>::max();
   unsigned int currCost = 0;
@@ -32,7 +25,7 @@ public:
   int getVertices() const;
 
   // optimal solution (NP-hard -> too slow)
-  unsigned int runTSPBruteForce(TSPMetricBruteForceLvlState input) const;
+  unsigned int runTSPBruteForce(TSPState state) const;
   unsigned int runTSPBranchAndBound(TSPState state) const;
 
   std::pair<std::vector<int>, int> runTSPNearestInsertion() const;

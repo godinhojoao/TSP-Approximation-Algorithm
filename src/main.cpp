@@ -104,9 +104,9 @@ int main() {
     } 
     else if (selectedAlgo == 2) {
       // START ---------------- brute force (pure backtracking) ----------------
-      TSPMetricBruteForceLvlState input;
+      TSPState input;
       input.visited.assign(V, false);
-      input.visitedNodesIndexes = {0};
+      input.path = {0};
       input.visited[0] = true;
 
       auto start1 = std::chrono::high_resolution_clock::now();
