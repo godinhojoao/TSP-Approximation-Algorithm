@@ -8,3 +8,5 @@
 
 ## How to run:
 - `make run`
+OR
+- `g++ -std=c++17 -O2 -I src src/main.cpp src/Graph/Graph.cpp -o main && ./main`
